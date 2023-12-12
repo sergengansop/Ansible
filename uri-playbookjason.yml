@@ -1,0 +1,19 @@
+---
+- name: send http GET to URL
+  connection: local
+  hosts: localhost
+  gather_facts: false
+
+
+  tasks:
+    - name: lookup API
+      ansible.builtin.uri:
+        method: GET
+        url: "http://api.open-notify.org/astros.jason"
+      register: results
+
+    - name: display to screen
+      ansible.builtin.debug:
+        var: iten.name
+      loop: "{{ results.jason.people }}"
+...
