@@ -1,0 +1,27 @@
+---
+- name: check how the list is being printed in Ansible
+  hosts: localhost
+  #connection: ssh   # default is ssh
+  gather_facts: true # runs by default
+
+  vars:
+    host0: 
+      test_0:
+        - it
+        - hr
+        - finance
+    host1: False
+      test_1
+        - it
+        - hr
+        - finance
+
+  tasks:
+  - name: print the vars
+    ansible.builtin.debug:
+      msg: "{{ vars.test }}"
+    when: vars == "host0"
+
+  - name: Gather Facts
+    ansible.builtin.debug:
+      var: ansible_facts
