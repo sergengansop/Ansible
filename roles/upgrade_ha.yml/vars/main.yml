@@ -1,0 +1,25 @@
+---
+primary:
+  ip_address: '{{ primary_ip_address }}'
+  username: '{{ username | default(omit) }}'
+  password: '{{ password | default(omit) }}'
+  api_key: '{{ api_key | default(omit) }}'
+
+secondary:
+  ip_address: '{{ secondary_ip_address }}'
+  username: '{{ username | default(omit) }}'
+  password: '{{ password | default(omit) }}'
+  api_key: '{{ api_key | default(omit) }}'
+
+# backup_config - Create a backup of the currently running config before upgrading on both devices.
+backup_config: true
+
+# backup_filename - Filename for running config backup.
+backup_filename: 'ansible-backup-{{ ansible_date_time.date }}.xml'
+
+# pause_mid_upgrade - Optionally pause for additional verification during upgrade.  This playbook will perform
+#                     basic checks for HA status and session sync, but this will wait for manual verification before
+#                     upgrading the secondary firewall.
+pause_mid_upgrade: false
+
+

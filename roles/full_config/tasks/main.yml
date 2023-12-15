@@ -1,0 +1,118 @@
+---
+# tasks file for full_config
+   - name: Configure interfaces
+     paloaltonetworks.panos.panos_interface:
+       provider: '{{ device }}'
+       template: '{{ template | default(omit) }}'
+       if_name: '{{ item.if_name }}'
+       mode: '{{ item.mode }}'
+       ip: '{{ item.ip }}'
+       enable_dhcp: '{{ item.enable_dhcp }}'
+       commit: false
+       with_items: '{{ interfaces }}'
+       tags: network
+    
+    - name: Configure zones
+      paloaltonetworks.panos.panos_zone:
+        provider: '{{ device }}'
+        template: '{{ template | default(omit) }}'
+        zone: '{{ item.zone }}'
+        mode: '{{ item.mode }}'
+        interface: '{{ item.interfaces }}'
+      with_items: '{{ zones }}'
+      tags: network
+
+    - name: Configure virtual router
+      paloaltonetworks.panos.panos_virtual_router:
+        provider: '{{ device }}'
+        template: '{{ template | default(omit) }}'
+        name: 'default'
+        interface: ['ethernet1/1', 'ethernet1/2', 'ethernet1/3']
+        commit: false
+      tags: network
+
+    - name: Configure static route
+      paloaltonetworks.panos.panos_static_route:
+        provider: '{{ device }}'
+        template: '{{ template | default(omit) }}'
+        virtual_router: 'default'
+        name: 'default'
+        destination: '0.0.0.0/0'
+        nexthop: '192.168.55.2'
+      tags: network
+
+    - name: Create address objects
+      paloaltonetworks.panos.panos_address_object:
+        provider: '{{ device }}'
+        device_group: '{{ device_group | default(omit) }}'
+        name: '{{ item.name }}'
+        value: '{{ item.value }}'
+        commit: false
+      with_items: '{{ address_objects }}'
+      tags: objects
+
+    - name: Create service objects
+      paloaltonetworks.panos.panos_service_object:
+        provider: '{{ device }}'
+        device_group: '{{ device_group|default(omit) }}'
+        name: '{{ item.name }}'
+        protocol: '{{ item.protocol }}'
+        destination_port: '{{ item.destination_port }}'
+        commit: false
+      with_items: '{{ service_objects }}'
+      tags: objects
+
+    - name: Create security rules
+      paloaltonetworks.panos.panos_security_rule:
+        provider: '{{ device }}'
+        device_group: '{{ device_group | default(omit) }}'
+        rule_name: '{{ item.rule_name }}'
+        source_zone: '{{ item.source_zone }}'
+        source_ip: '{{ item.source_ip }}'
+        destination_zone: '{{ item.destination_zone }}'
+        destination_ip: '{{ item.destination_ip }}'
+        application: '{{ item.application }}'
+        service: '{{ item.service }}'
+        action: '{{ item.action }}'
+        commit: false
+      with_items: '{{ security_rules }}'
+      tags: security_rules
+
+    - name: Create inbound NAT rules
+      paloaltonetworks.panos.panos_nat_rule:
+        provider: '{{ device }}'
+        device_group: '{{ device_group | default(omit) }}'
+        rule_name: '{{ item.rule_name }}'
+        source_zone: '{{ item.source_zone }}'
+        source_ip: '{{ item.source_ip }}'
+        destination_zone: '{{ item.destination_zone }}'
+        destination_ip: '{{ item.destination_ip }}'
+        service: '{{ item.service }}'
+        snat_type: '{{ item.snat_type }}'
+        snat_interface: '{{ item.snat_interface }}'
+        dnat_address: '{{ item.dnat_address }}'
+        dnat_port: '{{ item.dnat_port }}'
+        commit: false
+      with_items: '{{ inbound_nat_rules }}'
+      tags: nat_rules
+
+    - name: Create outbound NAT rule
+      paloaltonetworks.panos.panos_nat_rule:
+        provider: '{{ device }}'
+        device_group: '{{ device_group | default(omit) }}'
+        rule_name: 'Outbound NAT'
+        source_zone: ['web', 'db']
+        source_ip: ['any']
+        destination_zone: 'untrust'
+        destination_ip: ['any']
+        snat_type: 'dynamic-ip-and-port'
+        snat_interface: 'ethernet1/1'
+        commit: false
+      tags: nat_rules
+
+    - name: Commit the candidate configuration
+      paloaltonetworks.panos.panos_commit:
+        provider: '{{ device }}'
+        device_group: '{{ device_group | default(omit) }}'
+        include_template: '{{ template | default(omit) }}'
+      tags: commit
